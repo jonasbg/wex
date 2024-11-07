@@ -1,0 +1,51 @@
+# .goreleaser.yml
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: wex
+    main: ./cmd/wex
+    binary: wex
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else }}{{ .Arch }}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+
+brews:
+  - name: wex
+    tap:
+      owner: jonasbg
+      name: homebrew-tap
+      token: "{{ .Env.GITHUB_TOKEN }}"
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    homepage: "https://github.com/jonasbg/wex"
+    description: "Clean web content extractor that converts to markdown"
+    license: "MIT"
+    test: |
+      system "#{bin}/wex --version"
+    install: |
+      bin.install "wex"

@@ -1,0 +1,41 @@
+# .github/workflows/homebrew.yml
+name: Update Homebrew Formula
+
+on:
+  release:
+    types: [published]  # Triggers when a new release is published
+
+jobs:
+  homebrew:
+    name: Bump Homebrew formula
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Extract version
+        id: extract-version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Update Homebrew formula
+        uses: dawidd6/action-homebrew-bump-formula@v3
+        with:
+          # Required arguments:
+          token: ${{ secrets.GH_PAT }}        # GitHub token with repo access
+          tap: jonasbg/homebrew-tap           # Your tap repository
+          formula: wex                        # Your formula name
+          tag: ${{ steps.extract-version.outputs.version }}
+          
+          # Optional but recommended arguments:
+          force: true                         # Force update even if formula is up to date
+          livecheck: false                    # Disable livecheck as we're pushing updates
+          message: |                          # Custom commit message
+            wex ${{ steps.extract-version.outputs.version }}
+            
+            Automated update by GitHub Action
+          
+          # If you need to test that the binary works:
+          install-test: |
+            system "#{bin}/wex --version"
