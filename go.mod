@@ -1,4 +1,4 @@
-module github.com/jonasbg/web2text/m/v2
+module github.com/jonasbg/wex/m/v2
 
 go 1.23.3
 
